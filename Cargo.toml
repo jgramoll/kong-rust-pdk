@@ -1,0 +1,2 @@
+[workspace]
+members = ["kong-mock", "serde-prost-types", "kong-rust-pdk"]
