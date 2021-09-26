@@ -1,10 +1,8 @@
-use std::io::Cursor;
-
 use tokio::{io, net::UnixStream};
 
-use kong_rust_pdk::pb::{rpc_call::Call, CmdStartInstance, RpcCall, RpcReturn};
-
-use prost::Message;
+use kong_rust_pdk::pb::{
+    deserialize_message, rpc_call::Call, serialize_message, CmdStartInstance, RpcCall, RpcReturn,
+};
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
@@ -30,13 +28,6 @@ fn create_cmd_start_instance(plugin_name: std::string::String, config: Vec<u8>) 
     }
 }
 
-fn serialize_cmd_start_instance(call: &RpcCall) -> Vec<u8> {
-    let mut buf = Vec::new();
-    buf.reserve(call.encoded_len());
-    call.encode_length_delimited(&mut buf).unwrap();
-    buf
-}
-
 // todo rpc stream service?
 async fn send_start(stream: &UnixStream) -> tokio::io::Result<()> {
     let plugin_name = String::from("example-rust-plugin");
@@ -47,7 +38,7 @@ async fn send_start(stream: &UnixStream) -> tokio::io::Result<()> {
             }"#,
     );
     let cmd = create_cmd_start_instance(plugin_name, config.into_bytes());
-    let buf = serialize_cmd_start_instance(&cmd);
+    let buf = serialize_message(&cmd);
 
     send(stream, &buf).await
 }
@@ -91,8 +82,6 @@ async fn read_result(stream: &UnixStream) -> tokio::io::Result<RpcReturn> {
         }
     }
 
-    println!("msg {:?}", &msg);
-    println!("msg {:?}", std::str::from_utf8(&msg));
-    let ret = RpcReturn::decode_length_delimited(Cursor::new(&msg))?;
+    let ret = deserialize_message(&msg)?;
     Ok(ret)
 }

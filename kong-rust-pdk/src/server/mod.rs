@@ -1,10 +1,10 @@
-use std::{env, io::Cursor};
+use std::env;
 
 use crate::{server::info::ServerInfoBuilder, Pdk, Plugin};
 use pb::{
-    self, rpc_call::Call, rpc_return::Return, CmdStartInstance, InstanceStatus, RpcCall, RpcReturn,
+    self, deserialize_message, rpc_call::Call, rpc_return::Return, serialize_message,
+    CmdStartInstance, InstanceStatus, RpcCall, RpcReturn,
 };
-use prost::Message;
 
 mod info;
 
@@ -43,12 +43,11 @@ where
     // }
 
     fn start_instance(&self, cmd: CmdStartInstance) -> Result<InstanceStatus, ()> {
+        // What do we do about nullable values
         let _config = match serde_json::from_slice::<T>(&cmd.config) {
             Ok(config) => {
-                println!("got config");
-
+                // WRONG need to wait for access cmd
                 config.access(&self.kong);
-
                 Some(config)
             }
             Err(e) => {
@@ -79,13 +78,11 @@ where
     T: 'static + Plugin,
 {
     async fn call(&self, request: RpcCall) -> std::io::Result<RpcReturn> {
-        println!("got rpc_call message");
-        log::info!("got rpc");
         match request.call.unwrap() {
             Call::CmdGetPluginNames(_) => todo!(),
             Call::CmdGetPluginInfo(_) => todo!(),
             Call::CmdStartInstance(cmd) => {
-                println!("CmdStartInstance");
+                log::debug!("processing CmdStartInstance");
                 // TODO handle unwrap error
                 let status = self.start_instance(cmd).unwrap();
                 Ok(RpcReturn {
@@ -114,27 +111,22 @@ fn get_socket_path() -> String {
 }
 
 // TODO can we make a trait / service
-async fn handle_client(stream: tokio::net::UnixStream) -> tokio::io::Result<()> {
-    println!("NEW CLIENT");
-
+async fn handle_client<T>(stream: tokio::net::UnixStream) -> tokio::io::Result<()>
+where
+    T: 'static + Plugin,
+{
     let mut msg = vec![0; 1024];
     let call = loop {
         stream.readable().await?;
 
         match stream.try_read(&mut msg) {
             Ok(n) => {
-                if n > 0 {
-                    msg.truncate(n);
-
-                    println!("read n bytes {}", n);
-                    println!("msg {:?}", &msg);
-                    match RpcCall::decode_length_delimited(Cursor::new(&msg)) {
-                        Ok(call) => break call,
-                        Err(e) => {
-                            println!("read e {:?}", e);
-                        }
-                    }
+                if n == 0 {
+                    continue;
                 }
+
+                msg.truncate(n);
+                break deserialize_message::<RpcCall>(&msg)?;
             }
             Err(ref e) if e.kind() == tokio::io::ErrorKind::WouldBlock => {
                 continue;
@@ -145,20 +137,9 @@ async fn handle_client(stream: tokio::net::UnixStream) -> tokio::io::Result<()> 
         }
     };
 
-    println!("call {:?}", &call);
-
-    let response = pb::RpcReturn {
-        sequence: call.sequence,
-        r#return: Some(pb::rpc_return::Return::InstanceStatus(InstanceStatus {
-            name: get_name(),
-            instance_id: 3,
-            config: None,
-            started_at: 0,
-        })),
-    };
-    let mut buf = Vec::new();
-    buf.reserve(call.encoded_len());
-    response.encode_length_delimited(&mut buf)?;
+    let server = PluginServer::<T>::new();
+    let response = server.call(call).await?;
+    let buf = serialize_message(&response);
 
     loop {
         stream.writable().await?;
@@ -202,6 +183,6 @@ where
 
     loop {
         let (stream, _addr) = listener.accept().await?;
-        tokio::spawn(async move { handle_client(stream).await });
+        tokio::spawn(async move { handle_client::<T>(stream).await });
     }
 }

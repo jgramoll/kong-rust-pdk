@@ -1,52 +1,65 @@
+use std::io::Write;
+
+use prost::{DecodeError, Message};
+
 include!(concat!(env!("OUT_DIR"), "/kong_plugin_protocol.rs"));
+
+// TODO should this happen on the transport layer
+pub fn serialize_message<T: Message>(call: &T) -> Vec<u8> {
+    let mut buf = Vec::new();
+    let len = call.encoded_len();
+    buf.reserve(len + 4);
+    // TODO check error
+    buf.write_all(&(len as u32).to_le_bytes()).unwrap();
+    call.encode(&mut buf).unwrap();
+    buf
+}
+
+pub fn deserialize_message<T: Message + Default>(buf: &[u8]) -> Result<T, DecodeError> {
+    let (_len, bytes) = buf.split_at(4);
+    T::decode(bytes)
+}
 
 #[cfg(test)]
 mod tests {
+    use super::{deserialize_message, serialize_message};
+
     use super::{rpc_call::Call, CmdStartInstance, RpcCall};
 
     use prost::Message;
 
-    fn create_cmd_start_instance(plugin_name: std::string::String, config: Vec<u8>) -> RpcCall {
+    fn create_cmd_start_instance() -> RpcCall {
+        let config = b"
+            {
+                \"message\": \"In a bottle\"
+            }";
+
         RpcCall {
             sequence: 1,
             call: Some(Call::CmdStartInstance(CmdStartInstance {
-                name: plugin_name,
-                config,
+                name: String::from("example-rust-plugin"),
+                config: config.to_vec(),
             })),
         }
     }
 
-    fn serialize_cmd_start_instance(call: &RpcCall) -> Vec<u8> {
-        let mut buf = Vec::new();
-        buf.reserve(call.encoded_len());
-        call.encode_length_delimited(&mut buf).unwrap();
-        buf
-    }
+    #[test]
+    fn test_cmd() {
+        let call_request = create_cmd_start_instance();
+        let request_vector = serialize_message(&call_request);
 
-    fn deserialize_cmd_start_instance(buf: &[u8]) -> Result<RpcCall, prost::DecodeError> {
-        let call = RpcCall::decode(buf)?;
-        Ok(call)
+        let request_deserialized_result = deserialize_message(&request_vector).unwrap();
+        assert_eq!(call_request, request_deserialized_result);
     }
 
     #[test]
-    fn test_cmd() {
-        let plugin_name = String::from("example-rust-plugin");
-        let config = String::from(
-            r#"
-            {
-                "message": "In a bottle"
-            }"#,
-        );
+    fn test_cmd_2() {
+        let call_request = create_cmd_start_instance();
+        let request_vector = serialize_message(&call_request);
 
-        let call_request = create_cmd_start_instance(plugin_name, config.clone().into_bytes());
-        let request_vector = serialize_cmd_start_instance(&call_request);
+        assert_eq!(97, call_request.encoded_len());
 
-        let request_deserialized_result = deserialize_cmd_start_instance(&request_vector).unwrap();
-        match request_deserialized_result.call.unwrap() {
-            Call::CmdStartInstance(cmd) => {
-                assert_eq!(config, std::str::from_utf8(&cmd.config).unwrap());
-            }
-            _ => panic!("Invalid deserialize type"),
-        };
+        let (len, _bytes) = request_vector.split_at(4);
+        assert_eq!(vec![97, 0, 0, 0], len);
     }
 }
