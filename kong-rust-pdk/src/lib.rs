@@ -1,17 +1,15 @@
 use request::Request;
 use response::Response;
-use serde::de::DeserializeOwned;
+use serde::{de::DeserializeOwned, Serialize};
+
+pub use macros;
+pub use pb;
 
 pub mod bridge;
 pub mod client;
 pub mod request;
 pub mod response;
 pub mod server;
-
-pub mod kong_plugin_protocol {
-    #![allow(clippy::all)]
-    tonic::include_proto!("kong_plugin_protocol");
-}
 
 #[derive(Debug, Clone)]
 pub struct Error {}
@@ -31,8 +29,28 @@ impl Pdk {
     }
 }
 
-// todo Deserialize vs DeserializeOwned
-pub trait Plugin: Clone + DeserializeOwned + Send {
+// TODO trait for each method
+// const METHOD_NAMES: [&str; 6] = [
+//     "Certificate",
+//     "Rewrite",
+//     "Access",
+//     "Response",
+//     "Preread",
+//     "Log",
+// ];
+
+// TODO Deserialize vs DeserializeOwned
+pub trait Plugin:
+    Clone + DeserializeOwned + Serialize + Send + Sync + PluginConfig + PluginSchema
+{
     fn new() -> Self;
     fn access(&self, kong: &Pdk);
+}
+
+pub trait PluginConfig {
+    fn get_phases() -> Vec<String>;
+}
+
+pub trait PluginSchema {
+    fn get_schema() -> String;
 }

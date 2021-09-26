@@ -1,12 +1,10 @@
 # Kong Rust PDK
 
-## local dev
-
-### example
+## example
 
 Start plugin server
 ```
-cargo run --example plugin
+cargo run --bin helloworld
 ```
 
 Send command from kong to run plugin
@@ -14,3 +12,11 @@ Send command from kong to run plugin
 cargo run -p kong-mock
 ```
 
+
+## Local dev
+
+debug macro
+```
+cargo expand --bin helloworld
+```
+ 

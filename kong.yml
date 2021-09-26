@@ -1,0 +1,21 @@
+_format_version: "2.1"
+_transform: true
+
+# services:
+# - name: my-service
+#   host: 
+  # url: https://example.com
+  # plugins:
+  # - name: key-auth
+
+routes:
+- name: my-route
+  paths:
+  - /
+  plugins:
+  - name: example-rust-plugin
+
+# consumers:
+# - username: my-user
+#   keyauth_credentials:
+#   - key: my-key

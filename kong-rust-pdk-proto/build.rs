@@ -1,6 +1,13 @@
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    tonic_build::configure()
-        // .build_server(false)
+use std::io::Result;
+
+fn main() -> Result<()> {
+    // let build_client = cfg!(feature = "build_client");
+    // let build_server = cfg!(feature = "build_server");
+
+    // .build_client(build_client)
+    // .build_server(build_server)
+
+    prost_build::Config::new()
         .type_attribute("RpcCall", "#[derive(serde::Serialize, serde::Deserialize)]")
         .type_attribute(
             "RpcCall.call",
@@ -54,12 +61,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             ".google.protobuf.Value",
             "#[derive(serde::Serialize, serde::Deserialize)]",
         )
-        // .extern_path(".google.protobuf.Value", "::serde_json::Value")
         .extern_path(".google.protobuf.Value", "::serde_prost_types::Value")
-        // .type_attribute(
-        //     "google.protobuf.Value",
-        //     "#[derive(serde::Serialize, serde::Deserialize)]",
-        // )
-        .compile(&["proto/pluginsocket.proto"], &["proto"])?;
+        .compile_protos(&["proto/pluginserver.proto"], &["proto"])?;
     Ok(())
 }

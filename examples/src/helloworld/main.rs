@@ -1,6 +1,4 @@
-use serde::Deserialize;
-
-use kong_rust_pdk::{server, Pdk, Plugin};
+use kong_rust_pdk::{macros::*, server, Pdk, Plugin};
 
 const VERSION: &str = "0.1";
 const PRIORITY: usize = 1;
@@ -12,11 +10,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-#[derive(Default, Deserialize, Clone)]
+#[plugin_config]
 struct Config {
     message: String,
 }
 
+#[plugin_impl]
 impl Plugin for Config {
     fn new() -> Config {
         Config::default()

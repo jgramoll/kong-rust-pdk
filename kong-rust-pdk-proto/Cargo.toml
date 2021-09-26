@@ -1,0 +1,22 @@
+[package]
+name = "kong-rust-pdk-proto"
+version = "0.1.0"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+default = []
+build_client = []
+build_server = []
+
+[dependencies]
+serde-prost-types = { path = "../serde-prost-types" }
+
+bytes = "1.1"
+prost = "0.8"
+prost-types = "0.8"
+serde = { version = "1.0", features = ["derive"] }
+
+[build-dependencies]
+prost-build = "0.8"

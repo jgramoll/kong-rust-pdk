@@ -4,8 +4,7 @@ use crate::Error;
 pub struct Response {}
 
 impl Response {
-    #[allow(clippy::clippy::unnecessary_wraps)]
-    pub fn set_header(&self, name: &str, value: &str) -> Result<(), Error> {
+    pub fn set_header(&self, _name: &str, _value: &str) -> Result<(), Error> {
         println!("Setting header...");
         Ok(())
     }

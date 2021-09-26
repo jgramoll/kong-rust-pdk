@@ -1,12 +1,16 @@
 [package]
-name = "kong-mock"
+name = "kong-rust-pdk-examples"
 version = "0.1.0"
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[[bin]]
+name = "helloworld"
+path = "src/helloworld/main.rs"
+
 [dependencies]
 kong-rust-pdk = { path = "../kong-rust-pdk" }
 
-prost = "0.8"
-tokio = { version = "1.11.0", features = ["macros", "net", "rt-multi-thread"] }
+serde = "1.0"
+tokio = { version = "1.11", features = ["macros", "rt-multi-thread"] }
