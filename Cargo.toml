@@ -1,6 +1,5 @@
 [workspace]
 members = [
-    "kong-mock",
     "kong-rust-pdk",
     "kong-rust-pdk-macro",
     "kong-rust-pdk-proto",

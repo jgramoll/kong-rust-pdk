@@ -105,15 +105,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b71991ff56294aa922b450139ee08b3bfc70982c6b2c7562771375cf73542dd4"
 
 [[package]]
-name = "kong-mock"
-version = "0.1.0"
-dependencies = [
- "kong-rust-pdk",
- "prost",
- "tokio",
-]
-
-[[package]]
 name = "kong-rust-pdk"
 version = "0.1.0"
 dependencies = [

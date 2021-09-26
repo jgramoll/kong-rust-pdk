@@ -11,11 +11,11 @@ use pb::{
     self, rpc_call::Call, rpc_return::Return, CmdStartInstance, InstanceStatus, RpcCall, RpcReturn,
 };
 
-// For testing
+// for sending test cmds
 pub mod client;
 
 mod info;
-pub(crate) mod socket;
+mod socket;
 
 // TODO does this have to be static?
 #[derive(Clone)]

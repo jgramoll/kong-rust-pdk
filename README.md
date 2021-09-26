@@ -9,7 +9,7 @@ cargo run --bin helloworld
 
 Send command from kong to run plugin
 ```
-cargo run -p kong-mock
+cargo run --bin kong_mock
 ```
 
 
