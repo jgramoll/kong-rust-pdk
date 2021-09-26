@@ -4,7 +4,6 @@ version = "0.1.0"
 authors = ["jgram <jgramoll@gmail.com>"]
 edition = "2018"
 
-
 [dependencies]
 macros = { package="kong-rust-pdk-macro", path = "../kong-rust-pdk-macro" }
 pb = { package="kong-rust-pdk-proto", path = "../kong-rust-pdk-proto" }
