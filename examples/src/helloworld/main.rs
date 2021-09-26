@@ -12,7 +12,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 #[plugin_config]
 struct Config {
-    message: String,
+    // TODO do we need all fields to be optional?
+    message: Option<String>,
 }
 
 #[plugin_impl]
@@ -27,13 +28,13 @@ impl Plugin for Config {
             .get_header("host")
             .expect("Error reading 'host' header");
 
-        println!("Here in plugin {} {}", host, self.message);
+        println!("Here in plugin {} {:?}", host, self.message);
 
         let message = &self.message;
         kong.response
             .set_header(
                 "x-hello-from-rust",
-                &format!("Rust says {} to {}", message, host),
+                &format!("Rust says {:?} to {}", message, host),
             )
             .expect("Error setting header");
     }

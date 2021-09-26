@@ -1,21 +1,27 @@
 use std::env;
 
-use crate::{server::info::ServerInfoBuilder, Pdk, Plugin};
+use crate::{
+    server::{
+        info::ServerInfoBuilder,
+        socket::{read_from_stream, send_to_stream},
+    },
+    Pdk, Plugin,
+};
 use pb::{
-    self, deserialize_message, rpc_call::Call, rpc_return::Return, serialize_message,
-    CmdStartInstance, InstanceStatus, RpcCall, RpcReturn,
+    self, rpc_call::Call, rpc_return::Return, CmdStartInstance, InstanceStatus, RpcCall, RpcReturn,
 };
 
-mod info;
+// For testing
+pub mod client;
 
-// TODO do we need this to be seperate error?
-// struct ServerError;
+mod info;
+pub(crate) mod socket;
 
 // TODO does this have to be static?
 #[derive(Clone)]
 pub struct PluginServer<T>
 where
-    T: 'static + Plugin,
+    T: Plugin,
 {
     config: T,
     kong: Pdk,
@@ -23,7 +29,7 @@ where
 
 impl<T> PluginServer<T>
 where
-    T: 'static + Plugin,
+    T: Plugin,
 {
     fn new() -> Self {
         Self {
@@ -31,16 +37,16 @@ where
             kong: Pdk::new(),
         }
     }
-    // fn instance_status() -> Option<Return> {
-    //     let status = InstanceStatus {
-    //         name: String::from("name"),
-    //         instance_id: 1,
-    //         config: None,
-    //         started_at: 0,
-    //     };
 
-    //     Some(Return::InstanceStatus(status))
-    // }
+    fn instance_status() -> InstanceStatus {
+        InstanceStatus {
+            name: get_name(),
+            instance_id: 1,
+            // TODO config
+            config: None,
+            started_at: 0,
+        }
+    }
 
     fn start_instance(&self, cmd: CmdStartInstance) -> Result<InstanceStatus, ()> {
         // What do we do about nullable values
@@ -57,15 +63,7 @@ where
             }
         };
 
-        // TODO better status
-        let status = InstanceStatus {
-            name: cmd.name,
-            instance_id: 1,
-            // TODO config
-            config: None,
-            started_at: 0,
-        };
-        Ok(status)
+        Ok(Self::instance_status())
     }
 }
 
@@ -75,7 +73,7 @@ where
 // Rpc for
 impl<T> PluginServer<T>
 where
-    T: 'static + Plugin,
+    T: Plugin,
 {
     async fn call(&self, request: RpcCall) -> std::io::Result<RpcReturn> {
         match request.call.unwrap() {
@@ -113,56 +111,22 @@ fn get_socket_path() -> String {
 // TODO can we make a trait / service
 async fn handle_client<T>(stream: tokio::net::UnixStream) -> tokio::io::Result<()>
 where
-    T: 'static + Plugin,
+    T: Plugin,
 {
-    let mut msg = vec![0; 1024];
-    let call = loop {
-        stream.readable().await?;
+    let call = read_from_stream::<RpcCall>(&stream).await?;
 
-        match stream.try_read(&mut msg) {
-            Ok(n) => {
-                if n == 0 {
-                    continue;
-                }
-
-                msg.truncate(n);
-                break deserialize_message::<RpcCall>(&msg)?;
-            }
-            Err(ref e) if e.kind() == tokio::io::ErrorKind::WouldBlock => {
-                continue;
-            }
-            Err(e) => {
-                return Err(e);
-            }
-        }
-    };
-
+    // TODO when to create the plugin instance
     let server = PluginServer::<T>::new();
     let response = server.call(call).await?;
-    let buf = serialize_message(&response);
 
-    loop {
-        stream.writable().await?;
-        match stream.try_write(&buf) {
-            Ok(_n) => {
-                break;
-            }
-            Err(ref e) if e.kind() == tokio::io::ErrorKind::WouldBlock => {
-                continue;
-            }
-            Err(e) => {
-                return Err(e);
-            }
-        }
-    }
-
+    send_to_stream(&stream, &response).await?;
     Ok(())
 }
 
 // TODO map error
 pub async fn start<T>(version: &str, priority: usize) -> std::io::Result<()>
 where
-    T: 'static + Plugin,
+    T: Plugin,
 {
     // todo args lib
     if env::args().any(|x| x == *"-dump") {
