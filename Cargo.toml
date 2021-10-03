@@ -3,6 +3,7 @@ members = [
     "kong-rust-pdk",
     "kong-rust-pdk-macro",
     "kong-rust-pdk-proto",
+    "kong-rust-pdk-test",
     "serde-prost-types",
 
     "examples",

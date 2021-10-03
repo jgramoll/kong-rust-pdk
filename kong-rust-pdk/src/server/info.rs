@@ -18,6 +18,7 @@ pub(crate) struct ServerInfo {
 }
 
 // TODO can we use pb::PluginInfo
+// TODO can we use google.protobuf.Value
 #[derive(Serialize)]
 #[serde(rename_all = "PascalCase")]
 struct PluginInfo {
@@ -57,6 +58,7 @@ enum PluginInfoType {
 pub(crate) struct ServerInfoBuilder {
     version: String,
     priority: usize,
+    #[allow(dead_code)]
     schema: String,
     phases: Vec<String>,
 }

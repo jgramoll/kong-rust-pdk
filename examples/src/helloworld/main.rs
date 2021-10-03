@@ -1,4 +1,4 @@
-use kong_rust_pdk::{macros::*, server, Pdk, Plugin};
+use kong_rust_pdk::{macros::*, pdk::Pdk, server, Error, Plugin};
 
 const VERSION: &str = "0.1";
 const PRIORITY: usize = 1;
@@ -12,30 +12,47 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 #[plugin_config]
 struct Config {
-    // TODO do we need all fields to be optional?
-    message: Option<String>,
+    message: String,
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            message: String::from("default message"),
+        }
+    }
 }
 
 #[plugin_impl]
 impl Plugin for Config {
-    fn new() -> Config {
-        Config::default()
+    async fn access<T: Pdk>(&self, kong: &mut T) -> Result<(), Error> {
+        let method = kong.request().get_method().await?;
+
+        kong.response().set_status(204).await?;
+
+        kong.response()
+            .set_header("x-hello-from-rust", &method)
+            .await?;
+
+        Ok(())
     }
+}
 
-    fn access(&self, kong: &Pdk) {
-        let host = kong
-            .request
-            .get_header("host")
-            .expect("Error reading 'host' header");
+#[cfg(test)]
+mod tests {
+    use kong_rust_pdk_test::{Request, Test};
 
-        println!("Here in plugin {} {:?}", host, self.message);
+    use super::*;
 
-        let message = &self.message;
-        kong.response
-            .set_header(
-                "x-hello-from-rust",
-                &format!("Rust says {:?} to {}", message, host),
-            )
-            .expect("Error setting header");
+    #[tokio::test]
+    async fn test_access() -> Result<(), Box<dyn std::error::Error>> {
+        let method = "GET";
+        let mut test = Test::new(Request::new(method, "http://example.com?q=search&x=9"))?;
+
+        let res = test.do_https(&Config::default()).await?;
+
+        assert_eq!(204, res.status);
+        assert_eq!(method, res.headers.get("x-hello-from-rust").unwrap());
+        Ok(())
     }
 }

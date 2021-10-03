@@ -28,7 +28,8 @@ fn add_config_schema(item_struct: syn::ItemStruct) -> TokenStream {
     let _methods = vec![String::from("access")];
 
     let ret = quote! {
-        #[derive(Default, serde::Deserialize, Clone,  serde::Serialize)]
+        #[derive(Clone, serde::Deserialize, serde::Serialize)]
+        #[serde(default)]
         #item_struct
 
         use kong_rust_pdk::PluginConfig;
@@ -49,6 +50,9 @@ fn handle_impl(item_impl: syn::ItemImpl) -> TokenStream {
     // println!("{:#?}", item_impl);
 
     let ret = quote! {
+        use kong_rust_pdk::async_trait;
+
+        #[async_trait]
         #item_impl
 
         use kong_rust_pdk::PluginSchema;

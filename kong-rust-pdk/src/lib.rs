@@ -1,33 +1,47 @@
-use request::Request;
-use response::Response;
+use std::fmt::{self, Debug};
+
+use pdk::Pdk;
 use serde::{de::DeserializeOwned, Serialize};
 
+pub use async_trait::async_trait;
+pub use http;
 pub use macros;
 pub use pb;
 
-pub mod bridge;
-pub mod client;
+pub mod pdk;
 pub mod request;
 pub mod response;
 pub mod server;
 
+pub(crate) mod stream;
+
 #[derive(Debug, Clone)]
 pub struct Error {}
 
-#[derive(Debug, Clone)]
-pub struct Pdk {
-    pub request: Request,
-    pub response: Response,
-}
-
-impl Pdk {
-    fn new() -> Self {
-        Pdk {
-            request: Request {},
-            response: Response {},
-        }
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "SuperError is here!")
     }
 }
+
+impl std::error::Error for Error {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        None
+    }
+
+    // fn cause(&self) -> Option<&dyn std::error::Error> {
+    //     self.source()
+    // }
+}
+
+// enum MethodNames {
+//     Certificate,
+//     Rewrite,
+//     Access,
+//     Response,
+//     Preread,
+//     Log,
+// }
 
 // TODO trait for each method
 // const METHOD_NAMES: [&str; 6] = [
@@ -40,11 +54,13 @@ impl Pdk {
 // ];
 
 // TODO Deserialize vs DeserializeOwned
+
+#[async_trait]
 pub trait Plugin:
-    Clone + DeserializeOwned + Serialize + Send + Sync + PluginConfig + PluginSchema
+    // TODO organize better
+    Clone + DeserializeOwned + Default + PluginConfig + PluginSchema + Send + Serialize + Sync
 {
-    fn new() -> Self;
-    fn access(&self, kong: &Pdk);
+    async fn access<T: Pdk>(&self, kong: &mut T) -> Result<(), Error>;
 }
 
 pub trait PluginConfig {

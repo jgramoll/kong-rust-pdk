@@ -4,6 +4,14 @@ version = "0.1.0"
 authors = ["jgram <jgramoll@gmail.com>"]
 edition = "2018"
 
+[features]
+test_client = []
+
+[[bin]]
+name = "kong_mock"
+path = "src/bin/kong_mock.rs"
+required-features = ["test_client"]
+
 [dependencies]
 macros = { package="kong-rust-pdk-macro", path = "../kong-rust-pdk-macro" }
 pb = { package="kong-rust-pdk-proto", path = "../kong-rust-pdk-proto" }
@@ -13,4 +21,10 @@ log = "0.4"
 prost = "0.8"
 serde = "1.0"
 serde_json = "1.0"
-tokio = { version = "1.11", features = ["macros", "net", "rt-multi-thread"] }
+tokio = { version = "1.12", features = ["macros", "net", "rt-multi-thread"] }
+
+prost-types = "0.8"
+
+async-trait = "0.1"
+
+http = "0.2"

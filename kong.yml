@@ -14,6 +14,8 @@ routes:
   - /
   plugins:
   - name: example-rust-plugin
+    config:
+      message: this is a message for you
 
 # consumers:
 # - username: my-user

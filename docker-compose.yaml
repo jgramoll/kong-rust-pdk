@@ -1,4 +1,3 @@
-
 services:
   kong:
     build: .
