@@ -2,8 +2,7 @@ use std::str::FromStr;
 
 #[derive(Debug, PartialEq)]
 pub(crate) enum Methods {
-    GetScheme,
-    GetMethod,
+    GetStatus,
 }
 
 #[derive(Debug, PartialEq)]
@@ -14,8 +13,7 @@ impl FromStr for Methods {
 
     fn from_str(s: &str) -> Result<Self, MethodParseError> {
         match s {
-            "kong.request.get_scheme" => Ok(Methods::GetScheme),
-            "kong.request.get_method" => Ok(Methods::GetMethod),
+            "kong.response.get_status" => Ok(Methods::GetStatus),
             _ => Err(MethodParseError),
         }
     }
@@ -24,8 +22,7 @@ impl FromStr for Methods {
 impl std::fmt::Display for Methods {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let str = match self {
-            Methods::GetScheme => "kong.request.get_scheme",
-            Methods::GetMethod => "kong.request.get_method",
+            Methods::GetStatus => "kong.response.get_status",
         };
         write!(f, "{}", str)
     }
@@ -36,11 +33,15 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_request_methods() {
-        assert_eq!("kong.request.get_method", Methods::GetMethod.to_string());
+    fn test_to_string() {
+        assert_eq!("kong.response.get_status", Methods::GetStatus.to_string());
+    }
+
+    #[test]
+    fn test_from_string() {
         assert_eq!(
-            Methods::GetMethod,
-            Methods::from_str("kong.request.get_method").unwrap()
+            Methods::GetStatus,
+            Methods::from_str("kong.response.get_status").unwrap()
         );
     }
 

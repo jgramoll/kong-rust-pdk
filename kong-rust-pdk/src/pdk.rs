@@ -27,12 +27,10 @@ impl StreamPdk {
 }
 
 impl Pdk for StreamPdk {
-    fn response(&mut self) -> &mut dyn Response {
-        todo!()
-        // &mut self.response
-    }
     fn request(&mut self) -> &mut dyn Request {
-        todo!()
-        // &mut self.response
+        &mut self.request
+    }
+    fn response(&mut self) -> &mut dyn Response {
+        &mut self.response
     }
 }

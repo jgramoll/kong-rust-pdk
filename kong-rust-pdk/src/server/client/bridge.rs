@@ -5,9 +5,11 @@ use crate::stream::Stream;
 use super::PluginClient;
 
 impl PluginClient {
-    pub(crate) async fn handle_method(&self, method: &str, stream: &Stream) -> io::Result<()> {
-        println!(" got method {}", method);
-
+    pub(crate) async fn handle_method(
+        &self,
+        method: &str,
+        stream: &Stream,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         // TODO put these somewhere
         match method {
             // RequestMethods::GetMethod.to
@@ -27,10 +29,7 @@ impl PluginClient {
                     .await?;
                 Ok(())
             }
-            _ => {
-                println!(" unknown method {}", method);
-                Ok(())
-            }
+            _ => Err(format!(" unknown method {}", method).into()),
         }
     }
 }

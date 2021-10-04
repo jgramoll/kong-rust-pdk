@@ -3,8 +3,9 @@ use std::future::Future;
 use kong_rust_pdk::{server, Plugin};
 use tokio::runtime::Runtime;
 
+#[allow(dead_code)]
 pub(crate) fn server_start<T, F>(
-    config: T,
+    _config: T,
     version: &'static str,
     priority: usize,
     future: F,

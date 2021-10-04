@@ -13,7 +13,6 @@ pub struct Response {
 
 impl Response {
     pub(crate) fn new() -> Self {
-        println!("new response !");
         Self {
             status: 200,
             headers: HeaderMap::default(),

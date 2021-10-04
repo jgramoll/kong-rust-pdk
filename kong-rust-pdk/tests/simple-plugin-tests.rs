@@ -2,9 +2,6 @@ use kong_rust_pdk::{macros::*, pdk::Pdk, Error, Plugin};
 
 mod common;
 
-const VERSION: &str = "0.1";
-const PRIORITY: usize = 1;
-
 #[plugin_config]
 struct Config {
     message: String,
@@ -35,6 +32,9 @@ fn test_default_config() -> Result<(), Box<dyn std::error::Error>> {
     use tokio::net::UnixStream;
 
     use crate::common::server_start;
+
+    const VERSION: &str = "0.1";
+    const PRIORITY: usize = 1;
 
     server_start(Config::default(), VERSION, PRIORITY, async {
         // let plugin_name = String::from("example-rust-plugin");

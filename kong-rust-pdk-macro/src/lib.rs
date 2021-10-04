@@ -24,7 +24,6 @@ fn add_config_schema(item_struct: syn::ItemStruct) -> TokenStream {
     let ident = item_struct.ident.clone();
 
     // TODO build schema
-    // println!("{:#?}", item_struct);
     let _methods = vec![String::from("access")];
 
     let ret = quote! {
@@ -44,11 +43,7 @@ fn add_config_schema(item_struct: syn::ItemStruct) -> TokenStream {
 }
 
 fn handle_impl(item_impl: syn::ItemImpl) -> TokenStream {
-    // println!("attr {:#?}", attr);
-
     // TODO build methods
-    // println!("{:#?}", item_impl);
-
     let ret = quote! {
         use kong_rust_pdk::async_trait;
 

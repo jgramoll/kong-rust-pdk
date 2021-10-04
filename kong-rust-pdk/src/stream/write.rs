@@ -10,16 +10,14 @@ impl Stream {
 
             match self.0.try_write(buf) {
                 Ok(n) => {
-                    println!("wrote {} bytes", n);
-                    // println!("wrote {} bytes {:?}", n, &buf);
+                    log::trace!("wrote {} bytes", n);
                     break Ok(n);
                 }
                 Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
-                    println!("write would block");
+                    log::trace!("write would block");
                     continue;
                 }
                 Err(e) => {
-                    println!("write error {}", e);
                     break Err(e);
                 }
             }

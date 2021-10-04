@@ -72,9 +72,7 @@ where
 
         {
             let mut instances = self.instances.try_write().unwrap();
-            // println!("instances {:#?}", instances.keys());
             instances.insert(instance.id, instance.clone());
-            // println!("instances {:#?}", instances.keys());
         }
 
         instance
@@ -84,7 +82,7 @@ where
         // TODO check name match
 
         // What do we do about nullable values
-        println!(
+        log::debug!(
             " start_instance config {:#?}",
             std::str::from_utf8(&cmd.config)
         );
@@ -155,11 +153,10 @@ where
         stream: Stream,
         cmd: &CmdHandleEvent,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        println!("Attempting to get instance for event");
         match self.get_instance(cmd.instance_id) {
             Some(instance) => {
                 // TODO check if instance has event handler
-                println!("Running event {} for instance", cmd.event_name);
+                log::trace!("Running event {} for instance", cmd.event_name);
 
                 {
                     let mut pdk = StreamPdk::new(stream.clone());
@@ -172,12 +169,7 @@ where
                     };
                 }
 
-                println!("done here!");
-
-                // let v = stream.read_frame().await?;
-                // println!("v {:?} !", v);
-
-                // do we need to write an empty array to stream?
+                // trigger empty message to notify we won't send any more calls
                 stream.clone().write_frame(&[]).await?;
 
                 Ok(())
@@ -206,9 +198,6 @@ where
 
                     return Ok(Some(RpcReturn {
                         sequence: request.sequence,
-                        // r#return: Some(Return::InstanceStatus(
-                        //     self.get_instance_status(cmd.instance_id)?,
-                        // )),
                         r#return: None,
                     }));
                 }
@@ -216,7 +205,6 @@ where
             None => None,
         };
 
-        println!("sending status {:#?}", status);
         Ok(status.map(|status| RpcReturn {
             sequence: request.sequence,
             r#return: Some(Return::InstanceStatus(status)),
@@ -225,22 +213,13 @@ where
 
     // TODO can we make a trait / service
     async fn handle_rpc_call(&self, stream: Stream) -> tokio::io::Result<()> {
-        println!("In handle rpc call");
-
         loop {
             let call = stream.read_message::<RpcCall>().await?;
-            println!("call {:?}", call);
-
             let response = self.call(stream.clone(), call).await?;
 
-            println!("cal resp {:?}", response);
-
             if let Some(response) = response {
-                println!("sending resp");
                 let r = stream.write_message(&response).await?;
-                println!("handle_rpc_call done {}", r);
             } else {
-                // yeah?
                 // let r = stream.write_frame(&[]).await?;
             }
         }
@@ -248,7 +227,6 @@ where
 }
 
 pub fn get_name() -> String {
-    // TODO get name from process
     let name = std::env::args().next().unwrap();
     let name = name.split('/');
     String::from(name.last().unwrap())
@@ -259,7 +237,6 @@ pub fn get_socket_path() -> String {
     let mut path = String::from("/usr/local/kong/");
     path.push_str(&get_name());
     path.push_str(".socket");
-    // println!("socket path {:#?}", path);
     path
 }
 
@@ -274,10 +251,11 @@ where
 
         // write response to std out
         println!("{}", serde_json::to_string(&dump)?);
-
         return Ok(());
     }
-    println!("starting server!");
+
+    #[cfg(feature = "logger")]
+    env_logger::init();
 
     // make sure socket doesn't already exist
     let socket_addr = get_socket_path();
@@ -288,7 +266,7 @@ where
 
     let server = PluginServer::<T>::new();
     loop {
-        println!("listen for next stream");
+        log::debug!("Plugin server waiting for connection...");
         let (stream, _addr) = listener.accept().await?;
 
         let server = server.clone();

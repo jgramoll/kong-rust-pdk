@@ -5,7 +5,9 @@ authors = ["jgram <jgramoll@gmail.com>"]
 edition = "2018"
 
 [features]
+all = ["test_client", "logger"]
 test_client = []
+logger = ["env_logger"]
 
 [[bin]]
 name = "kong_mock"
@@ -28,3 +30,5 @@ prost-types = "0.8"
 async-trait = "0.1"
 
 http = "0.2"
+
+env_logger = { version = "0.9", optional = true }

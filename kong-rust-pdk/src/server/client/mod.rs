@@ -46,7 +46,7 @@ impl PluginClient {
         &self,
         instance_id: i32,
         event_name: String,
-    ) -> io::Result<RpcReturn> {
+    ) -> Result<RpcReturn, Box<dyn std::error::Error>> {
         let cmd = RpcCall {
             sequence: 1,
             call: Some(Call::CmdHandleEvent(CmdHandleEvent {
@@ -57,29 +57,17 @@ impl PluginClient {
 
         self.stream.write_message(&cmd).await?;
 
+        // handle methods until we get empty method which triggers end of call
         loop {
-            println!("reading frame");
-            let bytes = self.stream.read_frame().await;
-            println!("got this guy {:?}", bytes);
-            let bytes = bytes?;
-
-            // todo check type
-
-            match pb::RpcReturn::decode(&*bytes) {
-                Ok(ret) => {
-                    // TODO
-                    println!("GOT RET {:?}", ret);
-                    break Ok(ret);
-                }
-                Err(_) => match std::str::from_utf8(&*bytes) {
-                    Ok(method) => self.handle_method(method, &self.stream).await?,
-                    Err(_) => {
-                        println!("Got unknown message...");
-                    }
-                },
+            let method = self.stream.read_method().await?;
+            if method.is_empty() {
+                break;
             }
-
-            // let stream = self.get_stream().await?;
+            self.handle_method(&method, &self.stream).await?
         }
+
+        let bytes = self.stream.read_frame().await?;
+        let ret = pb::RpcReturn::decode(&*bytes)?;
+        Ok(ret)
     }
 }

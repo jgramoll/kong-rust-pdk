@@ -5,8 +5,6 @@ use http::HeaderMap;
 
 use crate::{stream::Stream, Error};
 
-use self::methods::RequestMethods;
-
 mod methods;
 
 #[async_trait]
@@ -39,7 +37,7 @@ impl Request for PbServerRequest {
     async fn get_scheme(&self) -> Result<String, Error> {
         // TODO error type
         self.stream
-            .write_method(&RequestMethods::GetScheme.to_string())
+            .write_method(&methods::Methods::GetScheme.to_string())
             .await
             .unwrap();
 
@@ -74,7 +72,7 @@ impl Request for PbServerRequest {
     async fn get_method(&self) -> Result<String, Error> {
         // TODO error type
         self.stream
-            .write_method(&RequestMethods::GetMethod.to_string())
+            .write_method(&methods::Methods::GetMethod.to_string())
             .await
             .unwrap();
 
@@ -167,7 +165,7 @@ mod tests {
         assert_eq!(expected_method, method);
 
         let s = right.read_method().await?;
-        assert_eq!(RequestMethods::GetMethod.to_string(), s);
+        assert_eq!(methods::Methods::GetMethod.to_string(), s);
 
         Ok(())
     }
