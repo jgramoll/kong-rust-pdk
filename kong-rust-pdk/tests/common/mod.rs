@@ -16,19 +16,11 @@ where
 {
     let rt = Runtime::new().unwrap();
     rt.block_on(async move {
-        println!("hello");
-
         tokio::spawn(async move {
-            println!("a");
             server::start::<T>(version, priority).await.unwrap();
-            // println!("why did this go");
         });
 
-        // std::thread::sleep(Duration::from_secs(2));
-
         tokio::spawn(future).await?;
-
-        println!("futures done");
 
         Ok(())
     })

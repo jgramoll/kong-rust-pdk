@@ -10,6 +10,15 @@ impl PluginClient {
 
         // TODO put these somewhere
         match method {
+            // RequestMethods::GetMethod.to
+            "kong.request.get_scheme" => {
+                stream
+                    .write_message(&pb::String {
+                        v: String::from("HTTP"),
+                    })
+                    .await?;
+                Ok(())
+            }
             "kong.request.get_method" => {
                 stream
                     .write_message(&pb::String {

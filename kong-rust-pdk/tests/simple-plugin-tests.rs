@@ -1,9 +1,4 @@
-use std::time::Instant;
-
 use kong_rust_pdk::{macros::*, pdk::Pdk, Error, Plugin};
-use tokio::net::UnixStream;
-
-use crate::common::server_start;
 
 mod common;
 
@@ -34,7 +29,12 @@ impl Plugin for Config {
 #[test]
 #[cfg(feature = "test_client")]
 fn test_default_config() -> Result<(), Box<dyn std::error::Error>> {
+    use std::time::Instant;
+
     use kong_rust_pdk::server;
+    use tokio::net::UnixStream;
+
+    use crate::common::server_start;
 
     server_start(Config::default(), VERSION, PRIORITY, async {
         // let plugin_name = String::from("example-rust-plugin");

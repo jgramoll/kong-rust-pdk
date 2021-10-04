@@ -11,11 +11,8 @@ path = "src/helloworld/main.rs"
 
 [dependencies]
 kong-rust-pdk = { path = "../kong-rust-pdk" }
-
 serde = "1.0"
 tokio = { version = "1.11", features = ["macros", "rt-multi-thread"] }
-
-# async-trait = "0.1"
 
 [dev-dependencies]
 kong-rust-pdk-test = { path = "../kong-rust-pdk-test" }

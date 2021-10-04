@@ -84,7 +84,7 @@ impl kong_rust_pdk::response::Response for Response {
 mod tests {
     use kong_rust_pdk::response::Response;
 
-    use super::*;
+    // use super::*;
 
     #[tokio::test]
     async fn test_exit_status() {

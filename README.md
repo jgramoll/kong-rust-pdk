@@ -12,7 +12,7 @@ tokio = { version = "1.11", features = ["macros", "rt-multi-thread"] }
 
 ```rs
 // src/main.rs
-use kong_rust_pdk::{macros::*, server, Pdk, Plugin};
+use kong_rust_pdk::{macros::*, pdk::Pdk, server, Error, Plugin};
 
 const VERSION: &str = "0.1";
 const PRIORITY: usize = 1;
@@ -26,28 +26,29 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 #[plugin_config]
 struct Config {
-    message: Option<String>,
+    message: String,
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            message: String::from("default message"),
+        }
+    }
 }
 
 #[plugin_impl]
 impl Plugin for Config {
-    fn new() -> Config {
-        Config::default()
-    }
+    async fn access<T: Pdk>(&self, kong: &mut T) -> Result<(), Error> {
+        let method = kong.request().get_method().await?;
 
-    fn access(&self, kong: &Pdk) {
-        let host = kong
-            .request
-            .get_header("host")
-            .expect("Error reading 'host' header");
+        kong.response().set_status(204).await?;
 
-        let message = &self.message;
-        kong.response
-            .set_header(
-                "x-hello-from-rust",
-                &format!("Rust says {:?} to {}", message, host),
-            )
-            .expect("Error setting header");
+        kong.response()
+            .set_header("x-hello-from-rust", &method)
+            .await?;
+
+        Ok(())
     }
 }
 ```
