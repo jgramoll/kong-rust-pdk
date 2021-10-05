@@ -1,6 +1,7 @@
 use std::{collections::BTreeMap, io, iter::Map};
 
 use async_trait::async_trait;
+use http::HeaderMap;
 
 use crate::{stream::Stream, Error};
 
@@ -17,7 +18,12 @@ pub trait Response: Send + Sync {
     async fn add_header(&self, key: String, value: String) -> Result<(), Error>;
     async fn clear_header(&self, key: String) -> Result<(), Error>;
     async fn set_headers(&self, headers: Map<String, Vec<String>>) -> Result<(), Error>;
-    async fn exit(&self, status: usize, body: String, headers: ()) -> io::Result<()>;
+    async fn exit(
+        &mut self,
+        status: usize,
+        body: Option<String>,
+        headers: Option<HeaderMap>,
+    ) -> Result<(), Error>;
     async fn exit_status(&mut self, status: usize) -> io::Result<()>;
 }
 
@@ -79,7 +85,12 @@ impl Response for PbServerResponse {
     }
 
     //map[string][]string
-    async fn exit(&self, status: usize, body: String, _headers: ()) -> io::Result<()> {
+    async fn exit(
+        &mut self,
+        status: usize,
+        body: Option<String>,
+        _headers: Option<HeaderMap>,
+    ) -> Result<(), Error> {
         // TODO error type
         // TODO type
 
@@ -88,7 +99,7 @@ impl Response for PbServerResponse {
                 "kong.response.exit",
                 &pb::ExitArgs {
                     status: status as i32,
-                    body,
+                    body: body.unwrap_or_default(),
                     headers: Some(prost_types::Struct {
                         fields: BTreeMap::new(),
                         //asd

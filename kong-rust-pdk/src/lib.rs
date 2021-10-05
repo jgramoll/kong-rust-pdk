@@ -15,6 +15,8 @@ pub mod server;
 
 pub(crate) mod stream;
 
+pub type Result<T> = std::result::Result<T, Error>;
+
 #[derive(Debug, Clone)]
 pub struct Error {}
 
@@ -32,6 +34,12 @@ impl std::error::Error for Error {
     // fn cause(&self) -> Option<&dyn std::error::Error> {
     //     self.source()
     // }
+}
+
+impl From<std::io::Error> for Error {
+    fn from(_: std::io::Error) -> Self {
+        todo!()
+    }
 }
 
 // enum MethodNames {
@@ -60,7 +68,7 @@ pub trait Plugin:
     // TODO organize better
     Clone + DeserializeOwned + Default + PluginConfig + PluginSchema + Send + Serialize + Sync
 {
-    async fn access<T: Pdk>(&self, kong: &mut T) -> Result<(), Error>;
+    async fn access<T: Pdk>(&self, kong: &mut T) -> Result<()>;
 }
 
 pub trait PluginConfig {

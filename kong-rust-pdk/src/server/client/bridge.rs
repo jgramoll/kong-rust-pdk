@@ -29,6 +29,7 @@ impl PluginClient {
                     .await?;
                 Ok(())
             }
+            "kong.response.exit" => Ok(()),
             _ => Err(format!(" unknown method {}", method).into()),
         }
     }

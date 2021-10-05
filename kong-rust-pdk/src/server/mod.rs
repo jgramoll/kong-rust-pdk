@@ -218,9 +218,9 @@ where
             let response = self.call(stream.clone(), call).await?;
 
             if let Some(response) = response {
-                let r = stream.write_message(&response).await?;
+                stream.write_message(&response).await?;
             } else {
-                // let r = stream.write_frame(&[]).await?;
+                stream.write_frame(&[]).await?;
             }
         }
     }

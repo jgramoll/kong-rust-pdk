@@ -3,11 +3,13 @@ use std::str::FromStr;
 use kong_rust_pdk::{
     async_trait,
     http::{header::HeaderName, HeaderMap, HeaderValue},
+    Error,
 };
 
 #[derive(Clone)]
 pub struct Response {
     pub status: usize,
+    pub body: String,
     pub headers: HeaderMap,
 }
 
@@ -15,6 +17,7 @@ impl Response {
     pub(crate) fn new() -> Self {
         Self {
             status: 200,
+            body: String::new(),
             headers: HeaderMap::default(),
         }
     }
@@ -69,7 +72,15 @@ impl kong_rust_pdk::response::Response for Response {
         todo!()
     }
 
-    async fn exit(&self, _status: usize, _body: String, _headers: ()) -> std::io::Result<()> {
+    async fn exit(
+        &mut self,
+        status: usize,
+        body: Option<String>,
+        headers: Option<HeaderMap>,
+    ) -> Result<(), Error> {
+        self.status = status;
+        self.body = body.unwrap_or_default();
+        self.headers = headers.unwrap_or_default();
         Ok(())
     }
 
