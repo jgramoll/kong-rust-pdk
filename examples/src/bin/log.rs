@@ -26,9 +26,7 @@ impl Default for Config {
 #[plugin_impl]
 impl Plugin for Config {
     async fn access<T: Pdk>(&self, kong: &mut T) -> Result<(), Error> {
-        kong.response()
-            .exit(404, Some(String::from("Exit from plugin")), None)
-            .await?;
+        kong.log().alert("How does this log".into()).await?;
 
         Ok(())
     }
@@ -45,10 +43,13 @@ mod tests {
         let method = "GET";
         let mut test = Test::new(Request::new(method, "http://example.com?q=search&x=9"))?;
 
-        let res = test.do_https(&Config::default()).await?;
+        test.do_https(&Config::default()).await?;
 
-        assert_eq!(404, res.status);
-        assert_eq!("Exit from plugin", &res.body);
+        assert!(test
+            .pdk
+            .log
+            .alerts
+            .contains(&String::from("How does this log")));
         Ok(())
     }
 }

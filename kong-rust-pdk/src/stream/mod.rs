@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use tokio::net::UnixStream;
 
+pub(crate) mod bridge;
 pub(crate) mod read;
 pub(crate) mod write;
 

@@ -37,7 +37,6 @@ fn test_default_config() -> Result<(), Box<dyn std::error::Error>> {
     const PRIORITY: usize = 1;
 
     server_start(Config::default(), VERSION, PRIORITY, async {
-        // let plugin_name = String::from("example-rust-plugin");
         let config = String::from(
             r#"
                 {

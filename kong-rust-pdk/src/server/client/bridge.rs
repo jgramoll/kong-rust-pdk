@@ -1,5 +1,3 @@
-use tokio::io;
-
 use crate::stream::Stream;
 
 use super::PluginClient;

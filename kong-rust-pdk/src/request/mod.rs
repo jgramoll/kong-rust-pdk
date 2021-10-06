@@ -1,30 +1,36 @@
 use std::collections::HashMap;
 
-use async_trait::async_trait;
 use http::HeaderMap;
+use strum::{EnumString, IntoStaticStr};
 
-use crate::{stream::Stream, Error};
-
-mod methods;
+use crate::{async_trait, stream::Stream, Result};
 
 #[async_trait]
 pub trait Request: Send + Sync {
-    async fn get_scheme(&self) -> Result<String, Error>;
-    async fn get_host(&self) -> Result<String, Error>;
-    async fn get_port(&self) -> Result<usize, Error>;
-    async fn get_forwarded_scheme(&self) -> Result<String, Error>;
-    async fn get_forwarded_host(&self) -> Result<String, Error>;
-    async fn get_forwarded_port(&self) -> Result<usize, Error>;
-    async fn get_http_version(&self) -> Result<f64, Error>;
-    async fn get_method(&self) -> Result<String, Error>;
-    async fn get_path(&self) -> Result<String, Error>;
-    async fn get_path_with_query(&self) -> Result<String, Error>;
-    async fn get_raw_query(&self) -> Result<String, Error>;
-    async fn get_query_arg(&self, name: String) -> Result<String, Error>;
-    async fn get_query(&self, max_args: usize) -> Result<HashMap<String, String>, Error>;
-    async fn get_header(&self, name: String) -> Result<String, Error>;
-    async fn get_headers(&self, max_headers: usize) -> Result<HeaderMap, Error>;
-    async fn get_raw_body(&self) -> Result<String, Error>;
+    async fn get_scheme(&self) -> Result<String>;
+    async fn get_host(&self) -> Result<String>;
+    async fn get_port(&self) -> Result<usize>;
+    async fn get_forwarded_scheme(&self) -> Result<String>;
+    async fn get_forwarded_host(&self) -> Result<String>;
+    async fn get_forwarded_port(&self) -> Result<usize>;
+    async fn get_http_version(&self) -> Result<f64>;
+    async fn get_method(&self) -> Result<String>;
+    async fn get_path(&self) -> Result<String>;
+    async fn get_path_with_query(&self) -> Result<String>;
+    async fn get_raw_query(&self) -> Result<String>;
+    async fn get_query_arg(&self, name: String) -> Result<String>;
+    async fn get_query(&self, max_args: usize) -> Result<HashMap<String, String>>;
+    async fn get_header(&self, name: String) -> Result<String>;
+    async fn get_headers(&self, max_headers: usize) -> Result<HeaderMap>;
+    async fn get_raw_body(&self) -> Result<String>;
+}
+
+#[derive(Debug, PartialEq, IntoStaticStr, EnumString)]
+pub(crate) enum Methods {
+    #[strum(serialize = "kong.request.get_scheme")]
+    GetScheme,
+    #[strum(serialize = "kong.request.get_method")]
+    GetMethod,
 }
 
 #[derive(Debug, Clone)]
@@ -34,10 +40,38 @@ pub(crate) struct PbServerRequest {
 
 #[async_trait]
 impl Request for PbServerRequest {
-    async fn get_scheme(&self) -> Result<String, Error> {
+    async fn get_scheme(&self) -> Result<String> {
+        self.stream.ask_string(Methods::GetScheme.into()).await
+    }
+
+    async fn get_host(&self) -> Result<String> {
+        todo!()
+    }
+
+    async fn get_port(&self) -> Result<usize> {
+        todo!()
+    }
+
+    async fn get_forwarded_scheme(&self) -> Result<String> {
+        todo!()
+    }
+
+    async fn get_forwarded_host(&self) -> Result<String> {
+        todo!()
+    }
+
+    async fn get_forwarded_port(&self) -> Result<usize> {
+        todo!()
+    }
+
+    async fn get_http_version(&self) -> Result<f64> {
+        todo!()
+    }
+
+    async fn get_method(&self) -> Result<String> {
         // TODO error type
         self.stream
-            .write_method(&methods::Methods::GetScheme.to_string())
+            .write_method(Methods::GetMethod.into())
             .await
             .unwrap();
 
@@ -45,70 +79,35 @@ impl Request for PbServerRequest {
         Ok(t.v)
     }
 
-    async fn get_host(&self) -> Result<String, Error> {
+    async fn get_path(&self) -> Result<String> {
         todo!()
     }
 
-    async fn get_port(&self) -> Result<usize, Error> {
+    async fn get_path_with_query(&self) -> Result<String> {
         todo!()
     }
 
-    async fn get_forwarded_scheme(&self) -> Result<String, Error> {
+    async fn get_raw_query(&self) -> Result<String> {
         todo!()
     }
 
-    async fn get_forwarded_host(&self) -> Result<String, Error> {
+    async fn get_query_arg(&self, _name: String) -> Result<String> {
         todo!()
     }
 
-    async fn get_forwarded_port(&self) -> Result<usize, Error> {
+    async fn get_query(&self, _max_args: usize) -> Result<HashMap<String, String>> {
         todo!()
     }
 
-    async fn get_http_version(&self) -> Result<f64, Error> {
+    async fn get_header(&self, _name: String) -> Result<String> {
         todo!()
     }
 
-    async fn get_method(&self) -> Result<String, Error> {
-        // TODO error type
-        self.stream
-            .write_method(&methods::Methods::GetMethod.to_string())
-            .await
-            .unwrap();
-
-        let t = self.stream.read_message::<pb::String>().await.unwrap();
-        Ok(t.v)
-    }
-
-    async fn get_path(&self) -> Result<String, Error> {
+    async fn get_headers(&self, _max_headers: usize) -> Result<HeaderMap> {
         todo!()
     }
 
-    async fn get_path_with_query(&self) -> Result<String, Error> {
-        todo!()
-    }
-
-    async fn get_raw_query(&self) -> Result<String, Error> {
-        todo!()
-    }
-
-    async fn get_query_arg(&self, _name: String) -> Result<String, Error> {
-        todo!()
-    }
-
-    async fn get_query(&self, _max_args: usize) -> Result<HashMap<String, String>, Error> {
-        todo!()
-    }
-
-    async fn get_header(&self, _name: String) -> Result<String, Error> {
-        todo!()
-    }
-
-    async fn get_headers(&self, _max_headers: usize) -> Result<HeaderMap, Error> {
-        todo!()
-    }
-
-    async fn get_raw_body(&self) -> Result<String, Error> {
+    async fn get_raw_body(&self) -> Result<String> {
         todo!()
     }
 }
@@ -122,6 +121,7 @@ impl PbServerRequest {
 #[cfg(test)]
 mod tests {
     use crate::stream::tests::new_stream;
+    use core::result::Result;
 
     use super::*;
 

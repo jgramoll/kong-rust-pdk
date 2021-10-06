@@ -3,7 +3,7 @@ use std::str::FromStr;
 use kong_rust_pdk::{
     async_trait,
     http::{header::HeaderName, HeaderMap, HeaderValue},
-    Error,
+    Error, Result,
 };
 
 #[derive(Clone)]
@@ -25,31 +25,31 @@ impl Response {
 
 #[async_trait]
 impl kong_rust_pdk::response::Response for Response {
-    async fn get_status(&self) -> std::io::Result<usize> {
+    async fn get_status(&self) -> Result<i32> {
         todo!()
     }
 
-    async fn get_header(&self, _name: &str) -> Result<String, kong_rust_pdk::Error> {
+    async fn get_header(&self, _name: &str) -> Result<String> {
         todo!()
     }
 
     async fn get_headers(
         &self,
         _max_headers: usize,
-    ) -> Result<std::iter::Map<String, Vec<String>>, kong_rust_pdk::Error> {
+    ) -> Result<std::iter::Map<String, Vec<String>>> {
         todo!()
     }
 
-    async fn get_source(&self) -> Result<String, kong_rust_pdk::Error> {
+    async fn get_source(&self) -> Result<String> {
         todo!()
     }
 
-    async fn set_status(&mut self, status: usize) -> Result<(), kong_rust_pdk::Error> {
+    async fn set_status(&mut self, status: usize) -> Result<()> {
         self.status = status;
         Ok(())
     }
 
-    async fn set_header(&mut self, name: &str, value: &str) -> Result<(), kong_rust_pdk::Error> {
+    async fn set_header(&mut self, name: &str, value: &str) -> Result<()> {
         // todo wrap error
         let name = HeaderName::from_str(name).unwrap();
         let value = HeaderValue::from_str(value).unwrap();
@@ -57,18 +57,15 @@ impl kong_rust_pdk::response::Response for Response {
         Ok(())
     }
 
-    async fn add_header(&self, _key: String, _value: String) -> Result<(), kong_rust_pdk::Error> {
+    async fn add_header(&self, _key: String, _value: String) -> Result<()> {
         todo!()
     }
 
-    async fn clear_header(&self, _key: String) -> Result<(), kong_rust_pdk::Error> {
+    async fn clear_header(&self, _key: String) -> Result<()> {
         todo!()
     }
 
-    async fn set_headers(
-        &self,
-        _headers: std::iter::Map<String, Vec<String>>,
-    ) -> Result<(), kong_rust_pdk::Error> {
+    async fn set_headers(&self, _headers: std::iter::Map<String, Vec<String>>) -> Result<()> {
         todo!()
     }
 
@@ -77,7 +74,7 @@ impl kong_rust_pdk::response::Response for Response {
         status: usize,
         body: Option<String>,
         headers: Option<HeaderMap>,
-    ) -> Result<(), Error> {
+    ) -> Result<()> {
         self.status = status;
         self.body = body.unwrap_or_default();
         self.headers = headers.unwrap_or_default();

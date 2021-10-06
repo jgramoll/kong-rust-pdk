@@ -4,7 +4,7 @@ use tokio::io;
 use super::Stream;
 
 impl Stream {
-    pub(crate) async fn write(&self, buf: &[u8]) -> tokio::io::Result<usize> {
+    async fn write(&self, buf: &[u8]) -> tokio::io::Result<usize> {
         loop {
             self.0.writable().await?;
 
@@ -35,25 +35,6 @@ impl Stream {
 
     pub(crate) async fn write_message<T: Message>(&self, msg: &T) -> tokio::io::Result<usize> {
         self.write_frame(&msg.encode_to_vec()).await
-    }
-
-    pub(crate) async fn write_method(&self, method: &str) -> tokio::io::Result<usize> {
-        let res1 = self.write_frame(method.as_bytes()).await?;
-        // empty frame for 0 args
-        let res2 = self.write_frame(&[]).await?;
-
-        Ok(res1 + res2)
-    }
-
-    pub(crate) async fn write_method_with_args<T: Message>(
-        &self,
-        method: &str,
-        args: &T,
-    ) -> tokio::io::Result<usize> {
-        let res1 = self.write_frame(method.as_bytes()).await?;
-        let res2 = self.write_frame(&args.encode_to_vec()).await?;
-
-        Ok(res1 + res2)
     }
 }
 

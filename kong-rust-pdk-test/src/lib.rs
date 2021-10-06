@@ -1,19 +1,25 @@
 use kong_rust_pdk::{Error, Plugin};
 
+pub use log::Log;
 pub use request::Request;
 pub use response::Response;
 
+mod log;
 mod pdk;
 mod request;
 mod response;
 
-pub struct Test(pdk::Pdk);
+pub struct Test {
+    pub pdk: pdk::Pdk,
+}
 
 impl Test {
     pub fn new(request: Request) -> Result<Self, Error> {
         request.validate().unwrap();
 
-        Ok(Self(pdk::Pdk::new(request)))
+        Ok(Self {
+            pdk: pdk::Pdk::new(request),
+        })
     }
 
     pub async fn do_http<T: Plugin>(&mut self, config: &T) -> Result<&Response, Error> {
@@ -22,14 +28,14 @@ impl Test {
         self.do_response(config).await?;
         self.do_log(config).await?;
 
-        Ok(&self.0.response)
+        Ok(&self.pdk.response)
     }
 
     pub async fn do_https<T: Plugin>(&mut self, config: &T) -> Result<&Response, Error> {
         self.do_certificate(config).await?;
         self.do_http(config).await?;
 
-        Ok(&self.0.response)
+        Ok(&self.pdk.response)
     }
 
     pub async fn do_stream<T: Plugin>(&mut self, config: &T) -> Result<(), Error> {
@@ -53,7 +59,7 @@ impl Test {
     }
 
     pub async fn do_access<T: Plugin>(&mut self, config: &T) -> Result<(), Error> {
-        config.access(&mut self.0).await?;
+        config.access(&mut self.pdk).await?;
         Ok(())
     }
 

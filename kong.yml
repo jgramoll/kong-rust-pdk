@@ -3,20 +3,33 @@ _transform: true
 
 # services:
 # - name: my-service
-#   host: 
-  # url: https://example.com
-  # plugins:
-  # - name: key-auth
+#   host:
+# url: https://example.com
+# plugins:
+# - name: key-auth
 
 routes:
-- name: my-route
-  paths:
-  - /
-  plugins:
-  - name: example-rust-plugin
-    config:
-      message: this is a message for you
-
+  - name: exit-route
+    paths:
+      - /exit
+    plugins:
+      - name: exit-plugin
+        config:
+          message: this is a message for you
+  - name: helloworld-route
+    paths:
+      - /helloworld
+    plugins:
+      - name: helloworld-plugin
+        config:
+          message: this is a message for you
+  - name: log-route
+    paths:
+      - /log
+    plugins:
+      - name: log-plugin
+        config:
+          message: this is a message for you
 # consumers:
 # - username: my-user
 #   keyauth_credentials:
