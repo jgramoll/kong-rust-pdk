@@ -5,9 +5,8 @@ authors = ["jgram <jgramoll@gmail.com>"]
 edition = "2018"
 
 [features]
-all = ["test_client", "logger"]
+all = ["test_client"]
 test_client = []
-logger = ["env_logger"]
 
 [[bin]]
 name = "kong_mock"
@@ -25,8 +24,6 @@ log = "0.4"
 prost = "0.8"
 prost-types = "0.8"
 serde = "1.0"
-strum = { version = "0.21", features = ["derive"] }
+strum = { version = "0.22", features = ["derive"] }
 serde_json = "1.0"
 tokio = { version = "1.12", features = ["macros", "net", "rt-multi-thread"] }
-
-env_logger = { version = "0.9", optional = true }

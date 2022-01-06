@@ -254,9 +254,6 @@ where
         return Ok(());
     }
 
-    #[cfg(feature = "logger")]
-    env_logger::init();
-
     // make sure socket doesn't already exist
     let socket_addr = get_socket_path();
     let _ = std::fs::remove_file(&socket_addr);

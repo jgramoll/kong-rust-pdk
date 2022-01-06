@@ -45,7 +45,7 @@ impl std::error::Error for Error {
 }
 
 impl From<std::io::Error> for Error {
-    fn from(_: std::io::Error) -> Self {
+    fn from(e: std::io::Error) -> Self {
         todo!()
     }
 }

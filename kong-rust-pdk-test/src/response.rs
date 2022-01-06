@@ -3,7 +3,7 @@ use std::str::FromStr;
 use kong_rust_pdk::{
     async_trait,
     http::{header::HeaderName, HeaderMap, HeaderValue},
-    Error, Result,
+    Result,
 };
 
 #[derive(Clone)]
@@ -33,10 +33,7 @@ impl kong_rust_pdk::response::Response for Response {
         todo!()
     }
 
-    async fn get_headers(
-        &self,
-        _max_headers: usize,
-    ) -> Result<std::iter::Map<String, Vec<String>>> {
+    async fn get_headers(&self, _max_headers: usize) -> Result<HeaderMap> {
         todo!()
     }
 
@@ -81,7 +78,7 @@ impl kong_rust_pdk::response::Response for Response {
         Ok(())
     }
 
-    async fn exit_status(&mut self, status: usize) -> std::io::Result<()> {
+    async fn exit_status(&mut self, status: usize) -> Result<()> {
         self.status = status;
         Ok(())
     }

@@ -68,12 +68,12 @@ impl Stream {
 mod tests {
     use prost::Message;
 
-    use crate::stream::tests::new_stream;
+    use crate::stream::{tests::new_stream, write::tests::write_to_stream};
 
     #[tokio::test]
     async fn test_read_number() -> Result<(), Box<dyn std::error::Error>> {
         let (left, right) = new_stream()?;
-        left.write(&7_i32.to_le_bytes()).await?;
+        write_to_stream(&left, &7_i32.to_le_bytes()).await?;
 
         let res = right.read_i32().await?;
         assert_eq!(7, res);
@@ -87,8 +87,8 @@ mod tests {
         let bytes = str.as_bytes();
 
         let (left, right) = new_stream()?;
-        left.write(&(bytes.len() as i32).to_le_bytes()).await?;
-        left.write(bytes).await?;
+        write_to_stream(&left, &(bytes.len() as i32).to_le_bytes()).await?;
+        write_to_stream(&left, bytes).await?;
 
         let res = right.read_method().await?;
         assert_eq!(str, res);
@@ -102,8 +102,8 @@ mod tests {
         let bytes = str.as_bytes();
 
         let (left, right) = new_stream()?;
-        left.write(&(bytes.len() as i32).to_le_bytes()).await?;
-        left.write(bytes).await?;
+        write_to_stream(&left, &(bytes.len() as i32).to_le_bytes()).await?;
+        write_to_stream(&left, bytes).await?;
 
         let res = right.read_frame().await?;
         assert_eq!(bytes, res);
@@ -118,8 +118,8 @@ mod tests {
         let bytes = msg.encode_to_vec();
 
         let (left, right) = new_stream()?;
-        left.write(&(bytes.len() as i32).to_le_bytes()).await?;
-        left.write(&bytes).await?;
+        write_to_stream(&left, &(bytes.len() as i32).to_le_bytes()).await?;
+        write_to_stream(&left, &bytes).await?;
 
         let res = right.read_message().await?;
         assert_eq!(msg, res);

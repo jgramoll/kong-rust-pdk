@@ -39,12 +39,17 @@ impl Stream {
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     use std::io::Write;
 
     use prost::Message;
 
-    use crate::stream::tests::new_stream;
+    use crate::stream::{tests::new_stream, Stream};
+
+    // for use in testing
+    pub(crate) async fn write_to_stream(stream: &Stream, buf: &[u8]) -> tokio::io::Result<usize> {
+        stream.write(buf).await
+    }
 
     #[tokio::test]
     async fn test_write() -> Result<(), Box<dyn std::error::Error>> {
@@ -122,33 +127,6 @@ mod tests {
         expected.write_all(&(method_bytes.len() as i32).to_le_bytes())?;
         expected.write_all(method_bytes)?;
         expected.write_all(&0_i32.to_le_bytes())?;
-        assert_eq!(expected, bytes);
-
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn test_write_method_with_args() -> Result<(), Box<dyn std::error::Error>> {
-        let method = "foo";
-        let method_bytes = method.as_bytes();
-        let args = pb::String {
-            v: String::from("bar"),
-        };
-        let expected_len = 4 + method_bytes.len() + 4 + args.encoded_len();
-
-        let (left, right) = new_stream()?;
-        let len = left.write_method_with_args(method, &args).await?;
-        assert_eq!(expected_len, len);
-
-        let mut bytes = vec![0; expected_len];
-        right.read(&mut bytes).await?;
-
-        let mut expected: Vec<u8> = Vec::new();
-        expected.reserve(expected_len);
-        expected.write_all(&(method_bytes.len() as i32).to_le_bytes())?;
-        expected.write_all(method_bytes)?;
-        expected.write_all(&(args.encoded_len() as i32).to_le_bytes())?;
-        expected.write_all(&args.encode_to_vec())?;
         assert_eq!(expected, bytes);
 
         Ok(())

@@ -2,8 +2,6 @@ use kong_rust_pdk::server;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    env_logger::init();
-
     let args: Vec<String> = std::env::args().collect();
     if args.len() == 1 {
         return Err("Must provide name of plugin".into());

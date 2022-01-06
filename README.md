@@ -64,7 +64,7 @@ impl Plugin for Config {
 
 Start plugin server
 ```
-RUST_LOG=info cargo run --bin helloworld --features logger
+RUST_LOG=info cargo run --bin helloworld
 ```
 
 Send command from kong to run plugin
